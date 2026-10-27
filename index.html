@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Shadow Theatre</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,14 +32,6 @@ h1{margin:0;text-align:center;font:400 clamp(2rem,7vw,3.2rem)/1.05 var(--display
 @keyframes cglow{0%,100%{color:var(--bone);text-shadow:0 0 10px rgba(255,170,60,.6)}50%{color:#fff4d8;text-shadow:0 0 18px rgba(255,200,90,1),0 0 42px rgba(255,140,40,.8)}}
 .replay{font:inherit;font-family:var(--display);font-size:1.15rem;min-height:44px;padding:.5rem 1.6rem;color:var(--bone);background:rgba(7,5,13,.8);border:1px solid var(--lantern);border-radius:999px;cursor:pointer;box-shadow:0 0 16px rgba(255,170,60,.35);animation:cin 1.2s ease both}
 .replay:focus-visible{outline:2px solid var(--lantern);outline-offset:3px}
-/* hidden admin door: tap the lantern three times */
-.admin{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(8,6,14,.84);padding:0 16px}
-.admin .card{width:min(100%,320px);background:#160f22;border:1px solid var(--edge);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;color:var(--bone)}
-.admin label{font-family:var(--display);font-size:1.25rem}
-.admin input{font:inherit;font-size:18px;padding:8px 10px;border-radius:8px;border:1px solid var(--edge);background:#08060e;color:var(--bone)}
-.admin .row{display:flex;gap:8px;justify-content:flex-end}
-.admin button{font:inherit;font-size:16px;min-height:44px;padding:6px 16px;border-radius:999px;border:1px solid var(--lantern);background:rgba(7,5,13,.8);color:var(--bone);cursor:pointer}
-.admin p{margin:0;min-height:1.2em;font-size:15px;color:#ff9a8a;font-style:italic}
 @media (prefers-reduced-motion:reduce){.msg.on,.coords,.replay{animation:none}}
 </style>
 <h1>Shadow Theatre</h1>
@@ -50,12 +42,6 @@ h1{margin:0;text-align:center;font:400 clamp(2rem,7vw,3.2rem)/1.05 var(--display
  <button class="replay" id="replay" type="button" hidden>↺ Replay</button>
 </main>
 <p class="sr" id="live" role="status" aria-live="polite"></p>
-<div class="admin" id="admin" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="apwl">
-  <label id="apwl" for="apw">Password</label>
-  <input id="apw" type="password" autocomplete="off">
-  <p id="aerr" role="status"></p>
-  <div class="row"><button id="acancel" type="button">Cancel</button><button id="aok" type="button">Open</button></div>
-</div></div>
 <script>
 (function(){
 'use strict';
@@ -685,19 +671,6 @@ cv.addEventListener('keydown',function(e){
   props[i].x=Math.max(6,Math.min(94,props[i].x+d[0]));props[i].z=Math.max(0,Math.min(ZMAX,props[i].z+d[1]));
 });
 ['pointerdown','keydown','touchend'].forEach(function(ev){document.addEventListener(ev,function(){Sound.prime();},{capture:true,once:true});});
-// admin door: three quick taps on the lantern ask for the password; the right one jumps to the last picture and solves it
-const ADMIN=217580182;let lampTaps=[];
-function adminHash(t){let h=2166136261;t="jar-admin|"+t;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h>>>0;}
-cv.addEventListener('pointerdown',function(e){const w=toWorld(e);if(Math.abs(w[0]-LX)>6||w[1]<PLAN+D-6)return;
-  const now=performance.now();lampTaps=lampTaps.filter(function(t){return now-t<1500;});lampTaps.push(now);
-  if(lampTaps.length>=3){lampTaps=[];$('#aerr').textContent='';$('#apw').value='';$('#admin').hidden=false;$('#apw').focus();}},true);
-function adminTry(){Sound.prime();if(adminHash($('#apw').value)!==ADMIN){$('#aerr').textContent="That's not it.";$('#apw').select();return;}
-  $('#admin').hidden=true;
-  $('#replay').hidden=true;$('#coords').hidden=true;$('#coords').innerHTML='';document.body.classList.remove('done');
-  done=false;round=THEMES.length-1;fade=1;fadeDir=0;winAt=0;drag=null;initRound();
-  props=tgt.map(function(t){return{k:t.k,x:t.x,z:t.z};});}
-$('#aok').addEventListener('click',adminTry);$('#acancel').addEventListener('click',function(){$('#admin').hidden=true;});
-$('#apw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();adminTry();}else if(e.key==='Escape')$('#admin').hidden=true;});
 // replay appears only once every picture is finished, and always starts again from the first one
 $('#replay').addEventListener('click',function(){
   $('#replay').hidden=true;$('#coords').hidden=true;$('#coords').innerHTML='';document.body.classList.remove('done');
